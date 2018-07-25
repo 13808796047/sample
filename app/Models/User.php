@@ -26,6 +26,16 @@ class User extends Authenticatable
     protected $hidden = [
         'password', 'remember_token',
     ];
+
+    //生成令牌
+    public static function boot()
+    {
+        parent::boot();
+        static::creating(function ($user) {
+            $user->activation_token = str_random(30);
+        });
+    }
+
     //头像
     public function gravatar($size = '100')
     {

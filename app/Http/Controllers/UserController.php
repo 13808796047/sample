@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
 
 class UserController extends Controller
 {
@@ -13,7 +14,7 @@ class UserController extends Controller
     public function __construct()
     {
         $this->middleware('auth', [
-            'except' => ['show', 'create', 'store','index']
+            'except' => ['show', 'create', 'store', 'index', 'confirmEmail']
         ]);
         //只让未登录用户访问注册页面
         $this->middleware('guest', [
@@ -50,9 +51,21 @@ class UserController extends Controller
             'email' => $request->email,
             'password' => bcrypt($request->password),
         ]);
-        //注册成功，直接登录
+//        //注册成功，直接登录
+//        Auth::login($user);
+        $this->sendEmailConfirmationTo($user);
+        session()->flash('success', '验证邮件已发送到你的注册邮箱上，请注意查收。');
+        return redirect()->route('users.show', [$user]);
+    }
+    //验证邮件
+    public function confirmEmail($token)
+    {
+        $user = User::where('activation_token',$token)->firstOrFail();
+        $user->activated = true;
+        $user->activation_token = null;
+        $user->save();
         Auth::login($user);
-        session()->flash('success', '欢迎,您将在这里开启新的旅程!');
+        session()->flash('success', '恭喜你，激活成功！');
         return redirect()->route('users.show', [$user]);
     }
 
@@ -85,12 +98,27 @@ class UserController extends Controller
         session()->flash('success', '资料更新成功');
         return redirect()->route('users.show', $user);
     }
+
     //删除用户
     public function destroy(User $user)
     {
-        $this->authorize('destroy',$user);
+        $this->authorize('destroy', $user);
         $user->delete();
-        session()->flash('success','成功删除用户');
+        session()->flash('success', '成功删除用户');
         return back();
+    }
+
+    //发送激活邮件
+    protected function sendEmailConfirmationTo($user)
+    {
+        $view = 'emails.confirm';
+        $data = compact('user');
+        $from = 'admin@qq.com';
+        $name = 'admin';
+        $to = $user->email;
+        $subject = "感谢注册 Sample 应用！请确认你的邮箱。";
+        Mail::send($view, $data, function ($message) use ($from, $name, $to, $subject) {
+            $message->from($from, $name)->to($to)->subject($subject);
+        });
     }
 }
