@@ -123,4 +123,20 @@ class UserController extends Controller
             $message->from($from, $name)->to($to)->subject($subject);
         });
     }
+
+    //用户关注人列表
+    public function followings(User $user)
+    {
+        $users = $user->followings()->paginate(30);
+        $title = '关注的人';
+        return view('users.show_follow', compact('users', 'title'));
+    }
+
+    //用户粉丝列表
+    public function followers(User $user)
+    {
+        $users = $user->followers()->paginate(30);
+        $title = '粉丝列表';
+        return view('users.show_follow', compact('users', 'title'));
+    }
 }

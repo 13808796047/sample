@@ -26,3 +26,10 @@ Route::post('password/email', 'Auth\ForgotPasswordController@sendResetLinkEmail'
 Route::get('password/reset/{token}', 'Auth\ResetPasswordController@showResetForm')->name('password.reset');
 Route::post('password/reset', 'Auth\ResetPasswordController@reset')->name('password.update');
 Route::resource('statuses','StatusController',['only'=>['store','destroy']]);
+//粉丝
+Route::get('/users/{user}/followings','UserController@followings')->name('users.followings');
+Route::get('/users/{user}/followers','UserController@followers')->name('users.followers');
+//关注用户
+Route::post('/users/followers/{user}','FollowerController@store')->name('followers.store');
+//取消关注
+Route::delete('/users/followers/{user}', 'FollowerController@destroy')->name('followers.destroy');
