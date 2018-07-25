@@ -37,15 +37,28 @@ class User extends Authenticatable
         });
     }
 
+    //动态流
+    public function feed()
+    {
+        return $this->statuses()->orderBy('created_at','desc');
+    }
+
     //头像
     public function gravatar($size = '100')
     {
         $hash = md5(strtolower(trim($this->attributes['email'])));
         return "http://www.gravatar.com/avatar/{$hash}?s={$size}";
     }
+
     //发送邮件
     public function sendPasswordResetNotification($token)
     {
         $this->notify(new ResetPassword($token));
+    }
+
+    //指明一个用户拥有多条微博
+    public function statuses()
+    {
+        return $this->hasMany(Status::class);
     }
 }

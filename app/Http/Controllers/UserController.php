@@ -35,7 +35,8 @@ class UserController extends Controller
 
     public function show(User $user)
     {
-        return view('users.show', compact('user'));
+        $statuses = $user->statuses()->orderBy('created_at', 'desc')->paginate(10);
+        return view('users.show', compact('user', 'statuses'));
     }
 
     //用户注册
@@ -57,10 +58,11 @@ class UserController extends Controller
         session()->flash('success', '验证邮件已发送到你的注册邮箱上，请注意查收。');
         return redirect()->route('users.show', [$user]);
     }
+
     //验证邮件
     public function confirmEmail($token)
     {
-        $user = User::where('activation_token',$token)->firstOrFail();
+        $user = User::where('activation_token', $token)->firstOrFail();
         $user->activated = true;
         $user->activation_token = null;
         $user->save();
